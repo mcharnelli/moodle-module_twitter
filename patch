@@ -1,0 +1,2 @@
+#!/bin/bash
+patch -b -d ../../ -p1 < install.patch 

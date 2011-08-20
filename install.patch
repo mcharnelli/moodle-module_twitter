@@ -1,0 +1,46 @@
+--- moodle-19/course/modedit.php	2011-08-08 20:05:33.966477258 -0300
++++ moodle19/course/modedit.php	2011-08-08 20:48:04.949324065 -0300
+@@ -7,6 +7,7 @@
+     require_once($CFG->libdir.'/gradelib.php');
+ 
+     require_login();
++    global $USER;
+ 
+     $add           = optional_param('add', 0, PARAM_ALPHA);
+     $update        = optional_param('update', 0, PARAM_INT);
+@@ -264,6 +265,17 @@
+                 set_coursemodule_idnumber($fromform->coursemodule, $fromform->cmidnumber);
+             }
+ 
++            // Trigger course_updated event with information about this module.
++            $eventdata = new object();
++            $eventdata->modulename = $fromform->modulename;
++            $eventdata->name       = $fromform->name;
++            $eventdata->cmid       = $fromform->coursemodule;
++            $eventdata->courseid   = $course->id;
++            $eventdata->userid     = $USER->id;
++            $eventdata->subject     = 'actualizado';
++            events_trigger('course_updated', $eventdata);
++
++
+             add_to_log($course->id, "course", "update mod",
+                        "../mod/$fromform->modulename/view.php?id=$fromform->coursemodule",
+                        "$fromform->modulename $fromform->instance");
+@@ -313,6 +325,17 @@
+                 set_coursemodule_idnumber($fromform->coursemodule, $fromform->cmidnumber);
+             }
+ 
++
++            // Trigger course_update event with information about this module.
++            $eventdata = new object();
++            $eventdata->modulename = $fromform->modulename;
++            $eventdata->name       = $fromform->name;
++            $eventdata->cmid       = $fromform->coursemodule;
++            $eventdata->courseid   = $course->id;
++            $eventdata->userid     = $USER->id;
++            $eventdata->subject 	 = 'nuevo';
++            events_trigger('course_updated', $eventdata);
++            
+             add_to_log($course->id, "course", "add mod",
+                        "../mod/$fromform->modulename/view.php?id=$fromform->coursemodule",
+                        "$fromform->modulename $fromform->instance");
