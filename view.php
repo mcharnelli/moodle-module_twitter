@@ -1,69 +1,57 @@
-<?php 
+<?php
 /**
  * This page prints a particular instance of twitter
  *
- * @author  María Emilia Charnelli <mcharnelli@linti.unlp.edu.ar>
+ * @author  Mari�a Emilia Charnelli <mcharnelli@linti.unlp.edu.ar>
  * @version $Id: view.php,v 1.6.2.3 2009/04/17 22:06:25 skodak Exp $
  * @package mod/twitter
  */
+
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/lib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // course_module ID, or
-$a  = optional_param('a', 0, PARAM_INT);  // twitter instance ID
+$n  = optional_param('n', 0, PARAM_INT);  // twitter instance ID - it should be named as the first character of the module
 
 if ($id) {
-    if (! $cm = get_coursemodule_from_id('twitter', $id)) {
-        error('Course Module ID was incorrect');
-    }
-
-    if (! $course = get_record('course', 'id', $cm->course)) {
-        error('Course is misconfigured');
-    }
-
-    if (! $twitter = get_record('twitter', 'id', $cm->instance)) {
-        error('Course module is incorrect');
-    }
-
-} else if ($a) {
-    if (! $twitter = get_record('twitter', 'id', $a)) {
-        error('Course module is incorrect');
-    }
-    if (! $course = get_record('course', 'id', $twitter->course)) {
-        error('Course is misconfigured');
-    }
-    if (! $cm = get_coursemodule_from_instance('twitter', $twitter->id, $course->id)) {
-        error('Course Module ID was incorrect');
-    }
-
+    $cm         = get_coursemodule_from_id('twitter', $id, 0, false, MUST_EXIST);
+    $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    $twitter  = $DB->get_record('twitter', array('id' => $cm->instance), '*', MUST_EXIST);
+} elseif ($n) {
+    $twitter  = $DB->get_record('twitter', array('id' => $n), '*', MUST_EXIST);
+    $course     = $DB->get_record('course', array('id' => $twitter->course), '*', MUST_EXIST);
+    $cm         = get_coursemodule_from_instance('twitter', $twitter->id, $course->id, false, MUST_EXIST);
 } else {
     error('You must specify a course_module ID or an instance ID');
 }
 
 require_login($course, true, $cm);
+$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-add_to_log($course->id, "twitter", "view", "view.php?id=$cm->id", "$twitter->id");
+add_to_log($course->id, 'twitter', 'view', "view.php?id={$cm->id}", $twitter->name, $cm->id);
 
 /// Print the page header
-$strtwitters = get_string('modulenameplural', 'twitter');
-$strtwitter  = get_string('modulename', 'twitter');
 
-$navlinks = array();
-$navlinks[] = array('name' => $strtwitters, 'link' => "index.php?id=$course->id", 'type' => 'activity');
-$navlinks[] = array('name' => format_string($twitter->name), 'link' => '', 'type' => 'activityinstance');
+$PAGE->set_url('/mod/twitter/view.php', array('id' => $cm->id));
+$PAGE->set_title(format_string($twitter->name));
+$PAGE->set_heading(format_string($course->fullname));
+$PAGE->set_context($context);
 
-$navigation = build_navigation($navlinks);
+// other things you may want to set - remove if not needed
+//$PAGE->set_cacheable(false);
+//$PAGE->set_focuscontrol('some-html-id');
+//$PAGE->add_body_class('twitter-'.$somevar);
 
-print_header_simple(format_string($twitter->name), '', $navigation, '', '', true,
-              update_module_button($cm->id, $course->id, $strtwitter), navmenu($course, $cm));
+// Output starts here
+echo $OUTPUT->header();
 
-/// Print the main part of the page
+if ($twitter->intro) { // Conditions to show the intro can change to look for own settings or whatever
+    echo $OUTPUT->box(format_module_intro('twitter', $twitter, $cm->id), 'generalbox mod_introbox', 'twitterintro');
+}
 
-echo "Módulo Twitter";
+// Replace the following lines with you own code
+echo $OUTPUT->heading('Yay! It works!');
 
-
-/// Finish the page
-print_footer($course);
-
-?>
+// Finish the page
+echo $OUTPUT->footer();

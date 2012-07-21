@@ -3,86 +3,65 @@
 /**
  * This page lists all the instances of twitter in a particular course
  *
- * @author  Mar√≠a Emilia Charnelli <mcharnelli@linti.unlp.edu.ar>
+ * @author  Mari≠a Emilia Charnelli <mcharnelli@linti.unlp.edu.ar>
  * @version $Id: index.php,v 1.7.2.3 2009/08/31 22:00:00 mudrd8mz Exp $
  * @package mod/twitter
  */
-
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/lib.php');
 
 $id = required_param('id', PARAM_INT);   // course
 
-if (! $course = get_record('course', 'id', $id)) {
-    error('Course ID is incorrect');
-}
+$course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
 
 require_course_login($course);
 
-add_to_log($course->id, 'twitter', 'view all', "index.php?id=$course->id", '');
+add_to_log($course->id, 'twitter', 'view all', 'index.php?id='.$course->id, '');
 
+$coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
 
-/// Get all required stringstwitter
+$PAGE->set_url('/mod/twitter/index.php', array('id' => $id));
+$PAGE->set_title(format_string($course->fullname));
+$PAGE->set_heading(format_string($course->fullname));
+$PAGE->set_context($coursecontext);
 
-$strtwitters = get_string('modulenameplural', 'twitter');
-$strtwitter  = get_string('modulename', 'twitter');
-
-
-/// Print the header
-
-$navlinks = array();
-$navlinks[] = array('name' => $strtwitters, 'link' => '', 'type' => 'activity');
-$navigation = build_navigation($navlinks);
-
-print_header_simple($strtwitters, '', $navigation, '', '', true, '', navmenu($course));
-
-/// Get all the appropriate data
+echo $OUTPUT->header();
 
 if (! $twitters = get_all_instances_in_course('twitter', $course)) {
-    notice('There are no instances of twitter', "../../course/view.php?id=$course->id");
-    die;
+    notice(get_string('notwitters', 'twitter'), new moodle_url('/course/view.php', array('id' => $course->id)));
 }
 
-/// Print the list of instances (your module will probably extend this)
-
-$timenow  = time();
-$strname  = get_string('name');
-$strweek  = get_string('week');
-$strtopic = get_string('topic');
-
 if ($course->format == 'weeks') {
-    $table->head  = array ($strweek, $strname);
-    $table->align = array ('center', 'left');
+    $table->head  = array(get_string('week'), get_string('name'));
+    $table->align = array('center', 'left');
 } else if ($course->format == 'topics') {
-    $table->head  = array ($strtopic, $strname);
-    $table->align = array ('center', 'left', 'left', 'left');
+    $table->head  = array(get_string('topic'), get_string('name'));
+    $table->align = array('center', 'left', 'left', 'left');
 } else {
-    $table->head  = array ($strname);
-    $table->align = array ('left', 'left', 'left');
+    $table->head  = array(get_string('name'));
+    $table->align = array('left', 'left', 'left');
 }
 
 foreach ($twitters as $twitter) {
     if (!$twitter->visible) {
-        //Show dimmed if the mod is hidden
-        $link = '<a class="dimmed" href="view.php?id='.$twitter->coursemodule.'">'.format_string($twitter->name).'</a>';
+        $link = html_writer::link(
+            new moodle_url('/mod/twitter.php', array('id' => $twitter->coursemodule)),
+            format_string($twitter->name, true),
+            array('class' => 'dimmed'));
     } else {
-        //Show normal if the mod is visible
-        $link = '<a href="view.php?id='.$twitter->coursemodule.'">'.format_string($twitter->name).'</a>';
+        $link = html_writer::link(
+            new moodle_url('/mod/twitter.php', array('id' => $twitter->coursemodule)),
+            format_string($twitter->name, true));
     }
 
     if ($course->format == 'weeks' or $course->format == 'topics') {
-        $table->data[] = array ($twitter->section, $link);
+        $table->data[] = array($twitter->section, $link);
     } else {
-        $table->data[] = array ($link);
+        $table->data[] = array($link);
     }
 }
 
-print_heading($strtwitters);
-print_table($table);
-
-/// Finish the page
-
-print_footer($course);
-
-?>
+echo $OUTPUT->heading(get_string('modulenameplural', 'twitter'), 2);
+echo html_writer::table($table);
+echo $OUTPUT->footer();

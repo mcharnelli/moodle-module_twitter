@@ -1,60 +1,102 @@
-<?php  
-
-/** 
- * Library of functions and constants for module twitter
- * This file should have two well differenced parts:
- *   - All the core Moodle functions, neeeded to allow
- *     the module to work integrated in Moodle.
- *   - All the twitter specific functions, needed
- *     to implement all the module logic. Please, note
- *     that, if the module become complex and this lib
- *     grows a lot, it's HIGHLY recommended to move all
- *     these module specific functions to a new php file,
- *     called "locallib.php" (see forum, quiz...). This will
- *     help to save some memory when Moodle is performing
- *     actions across all modules.
- */
-
-$twitter_EXAMPLE_CONSTANT = 42;    
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Library of interface functions and constants for module twitter
+ *
+ * All the core Moodle functions, neeeded to allow the module to work
+ * integrated in Moodle should be placed here.
+ * All the twitter specific functions, needed to implement all the module
+ * logic, should go to locallib.php. This will help to save some memory when
+ * Moodle is performing actions across all modules.
+ *
+ * @package    mod
+ * @subpackage twitter
+ * @copyright  2012 LINTI, Mari�a Emilia Charnelli <mcharnelli@linti.unlp.edu.ar>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+require_once ('twitteroauth.php');
+defined('MOODLE_INTERNAL') || die();
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Moodle core API                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the information on whether the module supports a feature
+ *
+ * @see plugin_supports() in lib/moodlelib.php
+ * @param string $feature FEATURE_xx constant for requested feature
+ * @return mixed true if the feature is supported, null if unknown
+ */
+function twitter_supports($feature) {
+    switch($feature) {
+        case FEATURE_MOD_INTRO:         return true;
+        default:                        return null;
+    }
+}
+
+/**
+ * Saves a new instance of the twitter into the database
+ *
  * Given an object containing all the necessary data,
  * (defined by the form in mod_form.php) this function
  * will create a new instance and return the id number
  * of the new instance.
  *
  * @param object $twitter An object from the form in mod_form.php
+ * @param mod_twitter_mod_form $mform
  * @return int The id of the newly inserted twitter record
  */
-require_once ('twitteroauth.php');
-
-function twitter_add_instance($twitter) {
+function twitter_add_instance(stdClass $twitter, mod_twitter_mod_form $mform = null) {
+    global $DB;
 
     $twitter->timecreated = time();
 
+    # You may have to add extra stuff in here #
 
-    return insert_record('twitter', $twitter);
+    return $DB->insert_record('twitter', $twitter);
 }
 
-
 /**
+ * Updates an instance of the twitter in the database
+ *
  * Given an object containing all the necessary data,
  * (defined by the form in mod_form.php) this function
  * will update an existing instance with new data.
  *
  * @param object $twitter An object from the form in mod_form.php
+ * @param mod_twitter_mod_form $mform
  * @return boolean Success/Fail
  */
-function twitter_update_instance($twitter) {
+function twitter_update_instance(stdClass $twitter, mod_twitter_mod_form $mform = null) {
+    global $DB;
 
     $twitter->timemodified = time();
     $twitter->id = $twitter->instance;
 
-    return update_record('twitter', $twitter);
+    # You may have to add extra stuff in here #
+
+    return $DB->update_record('twitter', $twitter);
 }
 
-
 /**
+ * Removes an instance of the twitter from the database
+ *
  * Given an ID of an instance of this module,
  * this function will permanently delete the instance
  * and any data that depends on it.
@@ -63,47 +105,48 @@ function twitter_update_instance($twitter) {
  * @return boolean Success/Failure
  */
 function twitter_delete_instance($id) {
+    global $DB;
 
-    if (! $twitter = get_record('twitter', 'id', $id)) {
+    if (! $twitter = $DB->get_record('twitter', array('id' => $id))) {
         return false;
     }
 
-    $result = true;
+    # Delete any dependent records here #
 
-    if (! delete_records('twitter', 'id', $twitter->id)) {
-        $result = false;
-    }
+    $DB->delete_records('twitter', array('id' => $twitter->id));
 
-    return $result;
+    return true;
 }
 
-
 /**
- * Return a small object with summary information about what a
+ * Returns a small object with summary information about what a
  * user has done with a given particular instance of this module
  * Used for user activity reports.
  * $return->time = the time they did it
  * $return->info = a short text description
  *
- * @return null
- * @todo Finish documenting this function
+ * @return stdClass|null
  */
 function twitter_user_outline($course, $user, $mod, $twitter) {
+
+    $return = new stdClass();
+    $return->time = 0;
+    $return->info = '';
     return $return;
 }
 
-
 /**
- * Print a detailed representation of what a user has done with
+ * Prints a detailed representation of what a user has done with
  * a given particular instance of this module, for user activity reports.
  *
- * @return boolean
- * @todo Finish documenting this function
+ * @param stdClass $course the current course record
+ * @param stdClass $user the record of the user we are generating report for
+ * @param cm_info $mod course module info
+ * @param stdClass $twitter the module instance record
+ * @return void, is supposed to echp directly
  */
 function twitter_user_complete($course, $user, $mod, $twitter) {
-    return true;
 }
-
 
 /**
  * Given a course and a time, this module should find recent activity
@@ -111,12 +154,37 @@ function twitter_user_complete($course, $user, $mod, $twitter) {
  * Return true if there was output, or false is there was none.
  *
  * @return boolean
- * @todo Finish documenting this function
  */
-function twitter_print_recent_activity($course, $isteacher, $timestart) {
-    return false; 
+function twitter_print_recent_activity($course, $viewfullnames, $timestart) {
+    return false;  //  True if anything was printed, otherwise false
 }
 
+/**
+ * Prepares the recent activity data
+ *
+ * This callback function is supposed to populate the passed array with
+ * custom activity records. These records are then rendered into HTML via
+ * {@link twitter_print_recent_mod_activity()}.
+ *
+ * @param array $activities sequentially indexed array of objects with the 'cmid' property
+ * @param int $index the index in the $activities to use for the next record
+ * @param int $timestart append activity since this time
+ * @param int $courseid the id of the course we produce the report for
+ * @param int $cmid course module id
+ * @param int $userid check for a particular user's activity only, defaults to 0 (all users)
+ * @param int $groupid check for a particular group's activity only, defaults to 0 (all groups)
+ * @return void adds items into $activities and increases $index
+ */
+function twitter_get_recent_mod_activity(&$activities, &$index, $timestart, $courseid, $cmid, $userid=0, $groupid=0) {
+}
+
+/**
+ * Prints single activity item prepared by {@see twitter_get_recent_mod_activity()}
+
+ * @return void
+ */
+function twitter_print_recent_mod_activity($activity, $courseid, $detail, $modnames, $viewfullnames) {
+}
 
 /**
  * Function to be run periodically according to the moodle cron
@@ -130,76 +198,196 @@ function twitter_cron () {
     return true;
 }
 
-
 /**
- * Must return an array of user records (all data) who are participants
- * for a given instance of twitter. Must include every user involved
- * in the instance, independient of his role (student, teacher, admin...)
- * See other modules as example.
+ * Returns all other caps used in the module
  *
- * @param int $twitterid ID of an instance of this module
- * @return mixed boolean/array of students
+ * @example return array('moodle/site:accessallgroups');
+ * @return array
  */
-function twitter_get_participants($twitterid) {
-    return false;
+function twitter_get_extra_capabilities() {
+    return array();
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Gradebook API                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 /**
+ * Is a given scale used by the instance of twitter?
+ *
  * This function returns if a scale is being used by one twitter
  * if it has support for grading and scales. Commented code should be
  * modified if necessary. See forum, glossary or journal modules
  * as reference.
  *
  * @param int $twitterid ID of an instance of this module
- * @return mixed
- * @todo Finish documenting this function
+ * @return bool true if the scale is used by the given twitter instance
  */
 function twitter_scale_used($twitterid, $scaleid) {
-    $return = false;
+    global $DB;
 
-    return $return;
-}
-
-
-/**
- * Checks if scale is being used by any instance of twitter.
- * This function was added in 1.9
- *
- * This is used to find out if scale used anywhere
- * @param $scaleid int
- * @return boolean True if the scale is used by any twitter
- */
-function twitter_scale_used_anywhere($scaleid) {
-    if ($scaleid and record_exists('twitter', 'grade', -$scaleid)) {
+    /** @example */
+    if ($scaleid and $DB->record_exists('twitter', array('id' => $twitterid, 'grade' => -$scaleid))) {
         return true;
     } else {
         return false;
     }
 }
 
-
 /**
- * Execute post-install custom actions for the module
- * This function was added in 1.9
+ * Checks if scale is being used by any instance of twitter.
  *
- * @return boolean true if success, false on error
+ * This is used to find out if scale used anywhere.
+ *
+ * @param $scaleid int
+ * @return boolean true if the scale is used by any twitter instance
  */
-function twitter_install() {
-    return true;
+function twitter_scale_used_anywhere($scaleid) {
+    global $DB;
+
+    /** @example */
+    if ($scaleid and $DB->record_exists('twitter', array('grade' => -$scaleid))) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
-
 /**
- * Execute post-uninstall custom actions for the module
- * This function was added in 1.9
+ * Creates or updates grade item for the give twitter instance
  *
- * @return boolean true if success, false on error
+ * Needed by grade_update_mod_grades() in lib/gradelib.php
+ *
+ * @param stdClass $twitter instance object with extra cmidnumber and modname property
+ * @return void
  */
-function twitter_uninstall() {
-    return true;
+function twitter_grade_item_update(stdClass $twitter) {
+    global $CFG;
+    require_once($CFG->libdir.'/gradelib.php');
+
+    /** @example */
+    $item = array();
+    $item['itemname'] = clean_param($twitter->name, PARAM_NOTAGS);
+    $item['gradetype'] = GRADE_TYPE_VALUE;
+    $item['grademax']  = $twitter->grade;
+    $item['grademin']  = 0;
+
+    grade_update('mod/twitter', $twitter->course, 'mod', 'twitter', $twitter->id, 0, null, $item);
 }
 
+/**
+ * Update twitter grades in the gradebook
+ *
+ * Needed by grade_update_mod_grades() in lib/gradelib.php
+ *
+ * @param stdClass $twitter instance object with extra cmidnumber and modname property
+ * @param int $userid update grade of specific user only, 0 means all participants
+ * @return void
+ */
+function twitter_update_grades(stdClass $twitter, $userid = 0) {
+    global $CFG, $DB;
+    require_once($CFG->libdir.'/gradelib.php');
+
+    /** @example */
+    $grades = array(); // populate array of grade objects indexed by userid
+
+    grade_update('mod/twitter', $twitter->course, 'mod', 'twitter', $twitter->id, 0, $grades);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// File API                                                                   //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the lists of all browsable file areas within the given module context
+ *
+ * The file area 'intro' for the activity introduction field is added automatically
+ * by {@link file_browser::get_file_info_context_module()}
+ *
+ * @param stdClass $course
+ * @param stdClass $cm
+ * @param stdClass $context
+ * @return array of [(string)filearea] => (string)description
+ */
+function twitter_get_file_areas($course, $cm, $context) {
+    return array();
+}
+
+/**
+ * File browsing support for twitter file areas
+ *
+ * @package mod_twitter
+ * @category files
+ *
+ * @param file_browser $browser
+ * @param array $areas
+ * @param stdClass $course
+ * @param stdClass $cm
+ * @param stdClass $context
+ * @param string $filearea
+ * @param int $itemid
+ * @param string $filepath
+ * @param string $filename
+ * @return file_info instance or null if not found
+ */
+function twitter_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
+    return null;
+}
+
+/**
+ * Serves the files from the twitter file areas
+ *
+ * @package mod_twitter
+ * @category files
+ *
+ * @param stdClass $course the course object
+ * @param stdClass $cm the course module object
+ * @param stdClass $context the twitter's context
+ * @param string $filearea the name of the file area
+ * @param array $args extra arguments (itemid, path)
+ * @param bool $forcedownload whether or not force download
+ * @param array $options additional options affecting the file serving
+ */
+function twitter_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options=array()) {
+    global $DB, $CFG;
+
+    if ($context->contextlevel != CONTEXT_MODULE) {
+        send_file_not_found();
+    }
+
+    require_login($course, true, $cm);
+
+    send_file_not_found();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Navigation API                                                             //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Extends the global navigation tree by adding twitter nodes if there is a relevant content
+ *
+ * This can be called by an AJAX request so do not rely on $PAGE as it might not be set up properly.
+ *
+ * @param navigation_node $navref An object representing the navigation tree node of the twitter module instance
+ * @param stdClass $course
+ * @param stdClass $module
+ * @param cm_info $cm
+ */
+function twitter_extend_navigation(navigation_node $navref, stdclass $course, stdclass $module, cm_info $cm) {
+}
+
+/**
+ * Extends the settings navigation with the twitter settings
+ *
+ * This function is called when the context for the page is a twitter module. This is not called by AJAX
+ * so it is safe to rely on the $PAGE.
+ *
+ * @param settings_navigation $settingsnav {@link settings_navigation}
+ * @param navigation_node $twitternode {@link navigation_node}
+ */
+function twitter_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $twitternode=null) {
+}
 
 /** 
  * Split a string into groups of words with a line no longer than $max 
@@ -233,42 +421,58 @@ function split_words($string, $max = 1)
 }
 
 /**
- * course updated event handler
+ * mod updated event handler
  *
  * @param object $mod full $MOD object
  */
+ 
 function twitter_course_updated($mod) 
 { 
-    require('config.php');
-  
-    if (isset($mod->subject))   {
-
-        if ($mod->subject=='actualizado')
-            $post='Se actualizó ';
-        else
-            $post='Se creó ';
-    
-        $tipo=$mod->modulename;
-        $nombre=$mod->name;
-        $curso= get_record('course', 'id', $mod->courseid);
-        $curso=$curso->fullname;
-
-        $post=$post. $tipo. ' '. $nombre. ' en '. $curso;
+    $post_format=get_string('updatemodmessage', 'twitter');
+    twitter_post($mod, $post_format); 
+    return true;  
+}
+/**
+ * mod created event handler
+ *
+ * @param object $mod full $MOD object
+ */
+function twitter_course_created($mod) 
+{         
+    $post_format=get_string('createmodmessage', 'twitter'); 
+    twitter_post($mod, $post_format);
+    return true;  
+}
+/**
+ * handler helper
+ *
+ * @param object $mod full $MOD object
+ * @param object $post full $POST object
+ */
+function twitter_post($mod, $post_format) {
+        require('config.php');
+        global $DB;
+        $type=get_string('modulename', $mod->modulename);
+        $type= strtolower($type);
+        $name=$mod->name;
+        $course= $DB->get_record('course', array('id'=>$mod->courseid));
+        $course=$course->fullname;
+        $url=new moodle_url('/mod/'.$mod->modulename.'/view.php', array('id'=>$mod->cmid));
+            
+        $post=sprintf($post_format, $type, $name, $course, $url);
 
         $post_split=split_words($post,140);
 
-        $twitters= get_records('twitter', 'course', $mod->courseid);
+        $twitters= $DB->get_records('twitter', array('course'=>$mod->courseid));
         foreach ($twitters as $twitter){
             
             $oauth = new TwitterOAuth($consumer_key, $consumer_secret,$twitter->access_token,$twitter->access_token_secret);
             $content = $oauth->get('account/verify_credentials');
             
-            for($i=0; $i<count($post_split); $i++){
-                $oauth->post('statuses/update', array('status' => $post_split[$i]));
+            for($i=count($post_split)-1; $i>=0; $i--){
+                $oauth->post('statuses/update', array('status' => html_entity_decode($post_split[$i])));
             }
+            
+            
         }
-    }   
-    return true;  
 }
-
-?>

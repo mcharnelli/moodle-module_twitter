@@ -1,60 +1,42 @@
-TWITTER ACTIVITY MODULE
+The following steps should get you up and running with
+this module template code.
 
-==Features==
-The Twitter Activity Module publishes any Moodle's course activities in a Twitter account.
+* DO NOT PANIC!
 
-==Installation==
-Create a directory called "twitter" in your "mod" directory and copy all the files for this module into the "twitter"
-directory.  
+* Unzip the archive and read this file
 
-If you have the patch command installed, run the script "patch" to modify modedit.php automatically.
-If you don't have it you can install it or modify modedit.php manually:
+* Rename the twitter/ folder to the name of your module (eg "widget").
+  The module folder MUST be lower case. You should check the CVS contrib
+  area at http://cvs.moodle.org/contrib/plugins/mod/ to make sure that
+  your name is not already used by an other module.
 
-1.Below this line
-  require_login();
+* Edit all the files in this directory and its subdirectories and change
+  all the instances of the string "twitter" to your module name
+  (eg "widget"). If you are using Linux, you can use the following command
+  $ find . -type f -exec sed -i 's/twitter/widget/g' {} \;
 
-paste this line
-   global $USER;
+* Rename the file lang/en/twitter.php to lang/en/widget.php
+  where "widget" is the name of your module
 
-2.Below the line 265 where it says
-      264.       set_coursemodule_idnumber($fromform->coursemodule, $fromform->cmidnumber);
-      265.    }
+* Place the widget folder into the /mod folder of the moodle
+  directory.
 
-paste this lines
-            // Trigger course_updated event with information about this module.
-            $eventdata = new object();
-            $eventdata->modulename = $fromform->modulename;
-            $eventdata->name       = $fromform->name;
-            $eventdata->cmid       = $fromform->coursemodule;
-            $eventdata->courseid   = $course->id;
-            $eventdata->userid     = $USER->id;
-            $eventdata->subject     = 'actualizado';
-            events_trigger('course_updated', $eventdata);
+* Go to Settings > Site Administration > Development > XMLDB editor
+  and modify the module's tables.
 
-3.Below the line 314 where it says
-      313.       set_coursemodule_idnumber($fromform->coursemodule, $fromform->cmidnumber);
-      314.    }
+* Modify version.php and set the initial version of you module.
 
-paste this lines
-           // Trigger course_update event with information about this module.
-            $eventdata = new object();
-            $eventdata->modulename = $fromform->modulename;
-            $eventdata->name       = $fromform->name;
-            $eventdata->cmid       = $fromform->coursemodule;
-            $eventdata->courseid   = $course->id;
-            $eventdata->userid     = $USER->id;
-            $eventdata->subject 	 = 'nuevo';
-            events_trigger('course_updated', $eventdata);
+* Visit Settings > Site Administration > Notifications, you should find
+  the module's tables successfully created
 
+* Go to Site Administration > Plugins > Activity modules > Manage activities
+  and you should find that this twitter has been added to the list of
+  installed modules.
 
-Visit the admin Notifications page (admin/index.php). The module tables should get installed.
+* You may now proceed to run your own code in an attempt to develop
+  your module. You will probably want to modify mod_form.php and view.php
+  as a first step. Check db/access.php to add capabilities.
 
-You can go to Modules > Activities in the Site Administration block. You
-should find that this module has been added to the list of recognized modules.
+We encourage you to share your code and experience - visit http://moodle.org
 
-
-Maintainer Contact information
-Organization: LINTI
-Author: María Emilia Charnelli
-Mail: mcharnelli@linti.unlp.edu.ar
-
+Good luck!
