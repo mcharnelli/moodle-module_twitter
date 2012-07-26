@@ -11,6 +11,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$module->version   = 1;               // If version == 0 then module will not be installed
-$module->cron      = 0;               // Period for cron to check this module (secs)
-$module->component = 'mod_twitter'; // To check on upgrade, that module sits in correct place
+$module->version   = 2012072401;     
+$module->requires = 2011070100; 
+$module->release = '2.0';
+$module->cron      = 0;               
+$module->component = 'mod_twitter'; 
+$module->maturity  = MATURITY_STABLE;
