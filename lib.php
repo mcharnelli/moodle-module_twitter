@@ -470,7 +470,7 @@ function twitter_post($mod, $post_format) {
             $content = $oauth->get('account/verify_credentials');
             
             for($i=count($post_split)-1; $i>=0; $i--){
-                $oauth->post('statuses/update', array('status' => html_entity_decode($post_split[$i])));
+                $oauth->post('statuses/update', array('status' => html_entity_decode($post_split[$i] , ENT_COMPAT | ENT_HTML401 , 'ISO8859-1')));
             }
             
             
