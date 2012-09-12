@@ -462,7 +462,6 @@ function twitter_post($mod, $post_format) {
         $post=sprintf($post_format, $type, $name, $course, $url);
 
         $post_split=split_words($post,140);
-
         $twitters= $DB->get_records('twitter', array('course'=>$mod->courseid));
         foreach ($twitters as $twitter){
             
@@ -470,7 +469,7 @@ function twitter_post($mod, $post_format) {
             $content = $oauth->get('account/verify_credentials');
             
             for($i=count($post_split)-1; $i>=0; $i--){
-                $oauth->post('statuses/update', array('status' => html_entity_decode($post_split[$i] , ENT_COMPAT | ENT_HTML401 , 'ISO8859-1')));
+                $oauth->post('statuses/update', array('status' => html_entity_decode($post_split[$i] , ENT_COMPAT | ENT_HTML401 , 'UTF-8')));
             }
             
             
