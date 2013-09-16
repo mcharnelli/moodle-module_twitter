@@ -1,12 +1,12 @@
 <?php
 
-/**
+/*
  * Abraham Williams (abraham@abrah.am) http://abrah.am
  *
  * The first PHP Library to support OAuth for Twitter's REST API.
  */
 
-/** Load OAuth lib. You can find it at http://oauth.net */
+/* Load OAuth lib. You can find it at http://oauth.net */
 require_once('OAuth.php');
 
 /**
@@ -18,7 +18,7 @@ class TwitterOAuth {
   /* Contains the last API call. */
   public $url;
   /* Set up the API root URL. */
-  public $host = "https://api.twitter.com/1/";
+  public $host = "https://api.twitter.com/1.1/";
   /* Set timeout default. */
   public $timeout = 30;
   /* Set connect timeout. */
@@ -72,11 +72,9 @@ class TwitterOAuth {
    *
    * @returns a key/value array containing oauth_token and oauth_token_secret
    */
-  function getRequestToken($oauth_callback = NULL) {
+  function getRequestToken($oauth_callback) {
     $parameters = array();
-    if (!empty($oauth_callback)) {
-      $parameters['oauth_callback'] = $oauth_callback;
-    } 
+    $parameters['oauth_callback'] = $oauth_callback; 
     $request = $this->oAuthRequest($this->requestTokenURL(), 'GET', $parameters);
     $token = OAuthUtil::parse_parameters($request);
     $this->token = new OAuthConsumer($token['oauth_token'], $token['oauth_token_secret']);
@@ -108,18 +106,14 @@ class TwitterOAuth {
    *                "user_id" => "9436992",
    *                "screen_name" => "abraham")
    */
-  function getAccessToken($token = NULL, $pin = NULL) {
-   
-  if($pin) {
-    $request = $this->oAuthRequest($this->accessTokenURL(), 'POST', array('oauth_verifier' => $pin));
-    
-  } else {
-    $request = $this->oAuthRequest($this->accessTokenURL());
+  function getAccessToken($oauth_verifier) {
+    $parameters = array();
+    $parameters['oauth_verifier'] = $oauth_verifier;
+    $request = $this->oAuthRequest($this->accessTokenURL(), 'GET', $parameters);
+    $token = OAuthUtil::parse_parameters($request);
+    $this->token = new OAuthConsumer($token['oauth_token'], $token['oauth_token_secret']);
+    return $token;
   }
-  $token = OAuthUtil::parse_parameters($request);
-  $this->token = new OAuthConsumer($token['oauth_token'], $token['oauth_token_secret']);
-  return $token;
-}
 
   /**
    * One time exchange of username and password for access token and secret.

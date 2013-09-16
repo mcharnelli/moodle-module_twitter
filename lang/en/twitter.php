@@ -10,7 +10,8 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-
+$string['twitter:addinstance'] = 'Add a new Twitter';
+$string['pluginname'] = 'Twitter';
 $string['modulename'] = 'Twitter';
 $string['modulenameplural'] = 'twitters';
 $string['twitterintro'] = 'Description';

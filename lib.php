@@ -429,6 +429,7 @@ function split_words($string, $max = 1)
 function twitter_course_updated($mod) 
 { 
     $post_format=get_string('updatemodmessage', 'twitter');
+
     twitter_post($mod, $post_format); 
     return true;  
 }
@@ -460,16 +461,14 @@ function twitter_post($mod, $post_format) {
         $url=new moodle_url('/mod/'.$mod->modulename.'/view.php', array('id'=>$mod->cmid));
             
         $post=sprintf($post_format, $type, $name, $course, $url);
-
         $post_split=split_words($post,140);
         $twitters= $DB->get_records('twitter', array('course'=>$mod->courseid));
         foreach ($twitters as $twitter){
             
             $oauth = new TwitterOAuth($consumer_key, $consumer_secret,$twitter->access_token,$twitter->access_token_secret);
             $content = $oauth->get('account/verify_credentials');
-            
             for($i=count($post_split)-1; $i>=0; $i--){
-                $oauth->post('statuses/update', array('status' => html_entity_decode($post_split[$i] , ENT_COMPAT | ENT_HTML401 , 'UTF-8')));
+                $oauth->post('statuses/update', array('status' => html_entity_decode($post_split[$i] , ENT_COMPAT   , 'UTF-8')));
             }
             
             
