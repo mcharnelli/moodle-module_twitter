@@ -30,8 +30,10 @@ $string['pinhelpmessage_help'] = 'PIN is a numeric value needed for associate a 
   <li> Copy the PIN that shows up in order to complete the authorization </li>
 </ol>';
 $string['pinhelpmessage']='PIN';
-$string['updatemodmessage']='%s "%s" was updated in course %s %s';
-$string['createmodmessage']='%s "%s" was created in course %s %s';
+$string['updatemodmessage']='%s "%s" was updated in %s';
+$string['createmodmessage']='%s "%s" was created in %s';
+//$string['updatemodmessage']='%s "%s" was updated in course %s';
+//$string['createmodmessage']='%s "%s" was created in course %s';
 $string['pintitle']='Validation PIN';
 
 

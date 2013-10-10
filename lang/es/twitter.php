@@ -30,6 +30,8 @@ la cuenta de Twitter que desee.
   <li> Copie el PIN que le aparecer&#225; para completar la autorizaci&#243;n </li>
 </ol>';
 $string['pinhelpmessage']='PIN';
-$string['updatemodmessage']='Se actualiz&#243; %s "%s" en el curso %s %s';
-$string['createmodmessage']='Se cre&#243; %s "%s" en el curso %s %s';
+//$string['updatemodmessage']='Se actualiz&#243; %s "%s" en el curso %s';
+//$string['createmodmessage']='Se cre&#243; %s "%s" en el curso %s';
+$string['updatemodmessage']='Se actualiz&#243; %s "%s" en %s';
+$string['createmodmessage']='Se cre&#243; %s "%s" en %s';
 $string['pintitle']='PIN de Validaci&#243;n';

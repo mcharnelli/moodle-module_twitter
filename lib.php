@@ -452,6 +452,7 @@ function twitter_course_created($mod)
  */
 function twitter_post($mod, $post_format) {
         require('config.php');
+        $urlLength = 23;
         global $DB;
         $type=get_string('modulename', $mod->modulename);
         $type= strtolower($type);
@@ -460,8 +461,22 @@ function twitter_post($mod, $post_format) {
         $course=$course->fullname;
         $url=new moodle_url('/mod/'.$mod->modulename.'/view.php', array('id'=>$mod->cmid));
             
-        $post=sprintf($post_format, $type, $name, $course, $url);
-        $post_split=split_words($post,140);
+        $post=sprintf($post_format, $type, $name, $course);
+        if (strlen($post) > (140 - $urlLength )) {
+           $post = substr($post,0,140-($urlLength + 4)) . '...';
+        }
+        $post = $post . ' ' . $url;
+
+        $twitters= $DB->get_records('twitter', array('course'=>$mod->courseid));
+        foreach ($twitters as $twitter){
+            $oauth = new TwitterOAuth($consumer_key, $consumer_secret,$twitter->access_token,$twitter->access_token_secret);
+            $content = $oauth->get('account/verify_credentials');
+            $oauth->post('statuses/update', array('status' => html_entity_decode($post , ENT_COMPAT   , 'UTF-8')));
+        }
+}
+    
+  
+/*        $post_split=split_words($post,140);
         $twitters= $DB->get_records('twitter', array('course'=>$mod->courseid));
         foreach ($twitters as $twitter){
             
@@ -474,3 +489,4 @@ function twitter_post($mod, $post_format) {
             
         }
 }
+*/

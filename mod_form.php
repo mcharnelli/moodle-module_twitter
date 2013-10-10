@@ -52,7 +52,7 @@ class mod_twitter_mod_form extends moodleform_mod {
 
         if (!empty($_GET)) {
             $oauth = new TwitterOAuth($consumer_key, $consumer_secret);
-            $request_token_info = $oauth->getRequestToken();
+            $request_token_info = $oauth->getRequestToken(NULL);
 
             if(empty($request_token_info)) {
                 $mform->addElement('html', '<span class="error">'. get_string('errormessage', 'twitter') .'. <br /> '. get_string('reloadmessage', 'twitter') .'.');
@@ -87,7 +87,7 @@ class mod_twitter_mod_form extends moodleform_mod {
                 
                 $pinFromTwitter = $data['pin'];
             
-                $access_token_info = $oauth->getAccessToken(NULL, $pinFromTwitter);
+                $access_token_info = $oauth->getAccessToken($pinFromTwitter);
 
                 if (!(array_key_exists( 'oauth_token' , $access_token_info ))) {
                     $errors['pin']=get_string('pinerrormessage', 'twitter');

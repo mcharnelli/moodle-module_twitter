@@ -11,9 +11,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$module->version   = 2012072401;     
-$module->requires = 2011070100; 
-$module->release = '2.0';
+$module->version   = 2013101000;     
+$module->requires  = 2012120300; 
+$module->release   = '2.1';
 $module->cron      = 0;               
 $module->component = 'mod_twitter'; 
 $module->maturity  = MATURITY_STABLE;
